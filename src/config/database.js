@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const initSqlJs = require('sql.js');
 
+// Ajuste le chemin si nécessaire (ici remonte de 2 dossiers pour mettre le .db à la racine)
 const DB_FILE_PATH = path.resolve(__dirname, '../../local_data.db');
 
 let db;
@@ -15,11 +16,19 @@ const ready = initSqlJs()
       db = new SQL.Database();
     }
 
+    // Table Ordinateurs
     db.run(`CREATE TABLE IF NOT EXISTS local_computers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       glpi_id INTEGER,
       name TEXT,
       notes TEXT
+    )`);
+
+    // Table Périphériques (Correction de l'orthographe : periphericals -> peripherals)
+    db.run(`CREATE TABLE IF NOT EXISTS local_peripherals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      glpi_id INTEGER,
+      name TEXT
     )`);
 
     persist();
@@ -31,9 +40,7 @@ const ready = initSqlJs()
   });
 
 const persist = () => {
-  if (!db) {
-    return;
-  }
+  if (!db) return;
   const data = db.export();
   fs.writeFileSync(DB_FILE_PATH, Buffer.from(data));
 };
@@ -62,16 +69,19 @@ const run = (sql, params, callback) => {
       statement.step();
       const changes = db.getRowsModified();
       statement.free();
-      const lastID = fetchLastInsertId();
-      persist();
+
+      // 💡 Optimisation : On cherche le lastID uniquement si c'est une création (INSERT)
+      const isInsert = sql.trim().toUpperCase().startsWith('INSERT');
+      const lastID = isInsert ? fetchLastInsertId() : null;
+
+      persist(); // On sauvegarde sur le disque dur
+
       if (callback) {
         callback.call({ lastID, changes }, null);
       }
     })
     .catch((err) => {
-      if (callback) {
-        callback(err);
-      }
+      if (callback) callback(err);
     });
 };
 
