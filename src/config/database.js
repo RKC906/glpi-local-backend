@@ -16,6 +16,9 @@ const ready = initSqlJs()
       db = new SQL.Database();
     }
 
+    // Activation Foreign Key
+    db.run("PRAGMA foreign_keys = ON");
+
     // Table Ordinateurs
     db.run(`CREATE TABLE IF NOT EXISTS local_computers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,6 +33,34 @@ const ready = initSqlJs()
       glpi_id INTEGER,
       name TEXT
     )`);
+
+    db.run(`
+    CREATE TABLE IF NOT EXISTS title_language (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title_fr TEXT,
+        title_mg TEXT
+    )
+    `);
+
+    db.run(`
+    CREATE TABLE IF NOT EXISTS kanban_title (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title_fr TEXT,
+        title_mg TEXT
+    )
+    `);
+
+    db.run(`
+    CREATE TABLE IF NOT EXISTS kanban_settings (
+        status_id INTEGER PRIMARY KEY,
+        title_id INTEGER,
+        color TEXT,
+        bg TEXT,
+        text_color TEXT,
+        badge_bg TEXT,
+        FOREIGN KEY (title_id) REFERENCES kanban_title(id)
+      )
+    `);
 
     persist();
     console.log('Connecté avec succès à la base SQLite locale.');
