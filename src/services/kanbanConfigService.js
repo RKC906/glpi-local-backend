@@ -92,8 +92,7 @@ const kanbanConfigService = {
     const db = await getDb();
     try {
       const result = await db.run(
-        `INSERT INTO tickets_costs (ticket_id, amount, label, date) VALUES (?, ?, ?, ?)`,
-        [ticketId, amount, label, date || new Date().toISOString().slice(0, 10)]
+        `INSERT INTO tickets_costs (ticket_id, amount, label, date) VALUES (?, ?, ?, ?)`,\n        [ticketId, amount, label, date || new Date().toISOString().slice(0, 10)]
       );
       return { success: true, id: result.lastID };
     } catch (error) {
@@ -112,18 +111,31 @@ const kanbanConfigService = {
     }
   },
 
-async cancelLastCosts(id) {
-  const db = await getDb();
-  try {
-    return await db.run(
-      'DELETE FROM tickets_costs WHERE id = (SELECT MAX(id) FROM tickets_costs WHERE ticket_id = ?)', 
-      [id]
-    );
-  } catch (error) {
-    console.error("Erreur lors de la suppression du dernier coût SQLite:", error);
-    throw error;
+  // 🛠️ RÉCUPÉRER LE DERNIER COÛT D'UN TICKET SPECIFIQUE
+  async getLastCost(ticketId) {
+    const db = await getDb();
+    try {
+      return await db.get(
+        'SELECT amount FROM tickets_costs WHERE ticket_id = ? ORDER BY id DESC LIMIT 1',\n        [ticketId]
+      );
+    } catch (error) {
+      console.error("Erreur lors de la récupération du dernier coût:", error);
+      throw error;
+    }
+  },
+
+  // 🛠️ SUPPRIMER UNIQUEMENT LE DERNIER COÛT D'UN TICKET SPECIFIQUE
+  async cancelLastCosts(id) {
+    const db = await getDb();
+    try {
+      return await db.run(
+        'DELETE FROM tickets_costs WHERE id = (SELECT MAX(id) FROM tickets_costs WHERE ticket_id = ?)',\n        [id]
+      );
+    } catch (error) {
+      console.error("Erreur lors de la suppression du dernier coût SQLite:", error);
+      throw error;
+    }
   }
-}
 };
 
-module.exports = { kanbanConfigService, initDb };
+module.exports = { kanbanConfigService };
