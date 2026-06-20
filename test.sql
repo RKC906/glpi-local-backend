@@ -1,0 +1,5 @@
+CREATE TABLE testmoy
+(
+    id INT PRIMARY KEY AUTOINCREMENT,
+    nbr INT
+);
