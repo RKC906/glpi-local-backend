@@ -126,12 +126,27 @@ const kanbanConfigService = {
   async getAllCosts() {
     const db = await getDb();
     try {
-      return await db.all('SELECT ticket_id, amount, label, date FROM tickets_costs');
+      return await db.all('SELECT * FROM tickets_costs');
     } catch (error) {
       console.error("Erreur lors de la récupération des coûts SQLite:", error);
       throw error;
     }
   },
+
+  async UpdateCosts(id,amount) {
+    const db = await getDb();
+    try 
+    {
+      const result = await db.run(
+        `UPDATE FROM tickets_costs amount = ? WHERE id = ?`,
+        [amount, id]
+      );
+      return { success: true, id: result.lastID };
+    } catch (error) {
+      console.error("Erreur SQLite lors de l'insertion du coût:", error);
+      throw error;
+    }
+  },  
 
   async cancelLastCosts(id) {
     const db = await getDb();

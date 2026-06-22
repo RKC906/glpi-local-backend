@@ -33,6 +33,19 @@ const kanbanConfigController = {
     }
   },
 
+  async modifCosts(req, res) {
+    try {
+      const {id, amount} = req.body;
+      if (!id) {
+        return res.status(400).json({ message: "L'identifiant du cout (id) est manquant." });
+      }
+      const result = await kanbanConfigService.UpdateCosts(id,amount);
+      res.json({ message: 'Coût d\'intervention enregistré avec succès !', id: result.id });
+    } catch (error) {
+      res.status(500).json({ message: 'Erreur interne lors de la sauvegarde du coût' });
+    }
+  },
+
   async getAllCosts(req, res) {
     try {
       const data = await kanbanConfigService.getAllCosts();
